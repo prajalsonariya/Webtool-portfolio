@@ -514,7 +514,7 @@ export default function App() {
       {/* -------------------------------------------------------------------------------- */}
       {/* MOBILE SNAP LAYOUT (Completely independent of framer-motion scroll physics) */}
       {/* -------------------------------------------------------------------------------- */}
-      <div className="md:hidden h-screen w-full overflow-y-auto snap-y snap-mandatory overflow-x-hidden relative hide-scrollbar bg-[#15120f] text-[#e3dbc8] font-sans">
+      <div className="md:hidden h-[100dvh] w-full overflow-y-auto snap-y snap-mandatory overflow-x-hidden relative hide-scrollbar bg-[#15120f] text-[#e3dbc8] font-sans">
         
         {/* Cinematic Film Grain Overlay */}
         <div className="fixed inset-0 pointer-events-none noise-bg z-40" />
@@ -533,7 +533,7 @@ export default function App() {
         </header>
 
         {/* Stage 0 */}
-        <section className="h-screen w-full snap-start shrink-0 flex flex-col justify-center px-8 relative z-10 pt-16">
+        <section className="h-[100dvh] w-full snap-start shrink-0 flex flex-col justify-center px-8 relative z-10 pt-16">
           <div className="-mt-16">
             <h1 className="text-[2.5rem] leading-[1.05] tracking-tight font-serif text-stone-100 mb-6">
               Stop Adapting<br />Your Business<br />
@@ -550,7 +550,7 @@ export default function App() {
         </section>
 
         {/* Stage 1: The Method */}
-        <section className="h-screen w-full snap-start shrink-0 flex flex-col justify-center relative z-10">
+        <section className="h-[100dvh] w-full snap-start shrink-0 flex flex-col justify-center relative z-10">
           <div className="text-center px-8 mb-8">
             <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase mb-3 flex items-center justify-center gap-2">
               <span className="text-[10px]">❖</span> THE METHOD
@@ -590,7 +590,7 @@ export default function App() {
         </section>
 
         {/* Stage 2: Engines */}
-        <section className="min-h-screen h-auto w-full snap-start shrink-0 flex flex-col justify-center px-4 py-24 relative z-10">
+        <section className="min-h-[100dvh] h-auto w-full snap-start shrink-0 flex flex-col justify-center px-4 py-24 relative z-10">
           <div className="text-center mb-8 px-4">
             <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase flex items-center justify-center gap-2 mb-3">
               <span className="text-[10px]">❖</span> PROVEN PRODUCTION ENGINES
@@ -641,7 +641,7 @@ export default function App() {
         </section>
 
         {/* Stage 3: Pricing */}
-        <section className="min-h-screen h-auto w-full snap-start shrink-0 flex flex-col justify-center px-6 py-24 relative z-10">
+        <section className="min-h-[100dvh] h-auto w-full snap-start shrink-0 flex flex-col justify-center px-6 py-24 relative z-10">
           <div className="mb-10 text-center">
              <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase mb-4 flex items-center justify-center gap-2">
                <span className="text-[10px]">❖</span> INVESTMENT
@@ -688,7 +688,7 @@ export default function App() {
         </section>
 
         {/* Stage 4: Contact */}
-        <section className="h-screen w-full snap-start shrink-0 flex items-center justify-center relative z-10">
+        <section className="h-[100dvh] w-full snap-start shrink-0 flex items-center justify-center relative z-10">
           <a 
             href="https://wa.me/919773476854?text=Hey%20Prajal!%20I%20would%20love%20to%20know%20more%20about%20the%20Custom%20Operational%20Tool" 
             target="_blank" 
