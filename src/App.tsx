@@ -1,29 +1,67 @@
-import { motion, useScroll, useMotionValueEvent, AnimatePresence, useTransform } from 'framer-motion';
+import { motion, useScroll, useMotionValueEvent, AnimatePresence, useTransform, useSpring } from 'framer-motion';
 import { useRef, useState } from 'react';
-import { 
-  CheckCircle2, 
-  Activity, LayoutGrid, Maximize, Zap, MousePointer2, Layers,
-  Terminal, Bird, Compass, Hammer, Clock, Moon
-} from 'lucide-react';
+
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
-  
+  const [activeEngineTab, setActiveEngineTab] = useState(0);
+
+  const engines = [
+    {
+      id: "rupali",
+      name: "Rupali Flow",
+      title: "Rupali Flow: Salon Floor Operations",
+      subtitle: "High-Volume Service",
+      videoSrc: "/videos/RupaliFlow.mp4",
+      link: null
+    },
+    {
+      id: "linknyter",
+      name: "LinkNyter",
+      title: "LinkNyter: Audio Playback Engine",
+      subtitle: "High-Speed Asset Distribution",
+      videoSrc: "/videos/LinkNyter.mp4",
+      link: "https://www.linknyter.com/"
+    },
+    {
+      id: "grainphoto",
+      name: "Grain Photo",
+      title: "Grain Photo: Photo Engine",
+      subtitle: "Instant Visual Delivery",
+      videoSrc: "/videos/GrainPhoto.mp4",
+      link: null
+    }
+  ];
+
   // Hardware-accelerated scroll tracking
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end end"] });
   
-  // Buttery-smooth derived transforms (ZERO React re-renders during pan)
-  // Stage 1 fades in from 0.05 to 0.10. Timeline stays still.
-  // Then from 0.10 to 0.55 (450vh), the timeline pans.
-  const timelineX = useTransform(scrollYProgress, [0.10, 0.55], ["37.5%", "-37.5%"]);
-  const lineScale = useTransform(scrollYProgress, [0.10, 0.55], [0.125, 1]);
-  const lineWidth = useTransform(lineScale, v => `calc(${Math.max(0.125, v) * 100}% - 4rem)`);
+  // Wrap scroll progress in a spring to smooth out rigid mouse-wheel ticks
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 25,
+    restDelta: 0.001
+  });
+  
+  // --------------------------------------------------------------------------------
+  // TIMELINE PHYSICS (PURE VW MATH)
+  // --------------------------------------------------------------------------------
+  // Track starts at 80vw and ends at 240vw (160vw total length).
+  // Nodes are spaced out heavily to prevent overlap: 100vw, 140vw, 180vw, 220vw.
+  
+  // Start pan: -20vw (brings Node 1 into view).
+  // End pan: -170vw (perfectly centers Node 4 at 50vw).
+  const timelineX = useTransform(smoothProgress, [0.05, 0.55], ["-20vw", "-170vw"]);
+  
+  // The line grows exactly 160vw.
+  const activeLineWidth = useTransform(smoothProgress, [0.05, 0.55], ["0vw", "160vw"]);
 
   // State only for active indexing (triggers max 5 times during the whole scroll)
   const [activeMainStage, setActiveMainStage] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isTimelineStage, setIsTimelineStage] = useState(false);
 
+  // We intentionally use raw scrollYProgress here to prevent JS thread blocking during the physics animation.
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     let stage = 0;
     if (latest < 0.05) stage = 0; // 0 to 5%
@@ -34,24 +72,16 @@ export default function App() {
 
     if (stage !== activeMainStage) setActiveMainStage(stage);
 
+    let idx = 0;
+    if (latest < 0.216) idx = 0;
+    else if (latest < 0.350) idx = 1;
+    else if (latest < 0.483) idx = 2;
+    else idx = 3;
+    
+    if (idx !== activeIndex) setActiveIndex(idx);
+
     const isStage1 = latest >= 0.05 && latest <= 0.55;
     if (isStage1 !== isTimelineStage) setIsTimelineStage(isStage1);
-
-    if (isStage1) {
-      // Calculate exactly where the physical line is (v)
-      // from 0.10 to 0.55, local goes 0 to 1
-      const local = Math.max(0, Math.min(1, (latest - 0.10) / 0.45));
-      const v = 0.125 + (local * 0.875);
-      
-      let newPhase = 0;
-      // Nodes are physically located at 0.125, 0.375, 0.625, 0.875 of the container width
-      if (v >= 0.875) newPhase = 3;
-      else if (v >= 0.625) newPhase = 2;
-      else if (v >= 0.375) newPhase = 1;
-      else newPhase = 0;
-      
-      if (newPhase !== activeIndex) setActiveIndex(newPhase);
-    }
   });
 
   const scrollToStage = (stageIndex: number) => {
@@ -61,34 +91,34 @@ export default function App() {
   };
 
   const mainStages = [
-    { title: "00", desc: "The Philosophy" },
-    { title: "01", desc: "The Craft" },
-    { title: "02", desc: "The Arsenal" },
-    { title: "03", desc: "The Meaning" },
-    { title: "04", desc: "The Commitment" }
+    { title: "00", desc: "Custom Software" },
+    { title: "01", desc: "The Method" },
+    { title: "02", desc: "Proven Engines" },
+    { title: "03", desc: "Investment" },
+    { title: "04", desc: "Handover" }
   ];
 
   const processSubStages = [
     { 
-      w: "01", t: "The Floor", d: "Deep immersion.",
-      detail: "I don't build from a desk. I stand on your floor. I track the paperwork, the bottlenecks, the actual human movement."
+      w: "I", t: "On-Site Floor Audit",
+      detail: "I stand on your floor, watch your staff work, and map your unwritten operational rules."
     },
     { 
-      w: "02", t: "The Forge", d: "5 AM. Blue switches.",
-      detail: "Fueled by film scores and early mornings. Architecture, database, and logic engineered from an absolute blank slate."
+      w: "II", t: "Custom Engineering",
+      detail: "Databases and logic architecture built from scratch specifically for your environment."
     },
     { 
-      w: "03", t: "The Ghost Run", d: "Catching edge cases.",
-      detail: "Live testing alongside your existing system. No assumptions. We watch how real staff interact with the tool in real time."
+      w: "III", t: "Live Integration",
+      detail: "Tested alongside your actual team until the interface operates with zero friction."
     },
     { 
-      w: "04", t: "The Flight", d: "Opening the wings.",
-      detail: "The engine goes live. Built to be autonomous, lightweight, and free. You run your business, the system handles the rest."
+      w: "IV", t: "Handover",
+      detail: "A standalone desktop or/and mobile tool deployed directly to your workstations."
     }
   ];
 
   return (
-    <div ref={containerRef} className="h-[800vh] bg-stone-950 text-stone-200 selection:bg-amber-500/30 selection:text-amber-100 font-sans relative">
+    <div ref={containerRef} className="h-[800vh] bg-[#15120f] text-[#e3dbc8] selection:bg-[#c28e5c]/30 selection:text-[#f4ebd8] font-sans relative">
       
       {/* Cinematic Film Grain Overlay */}
       <div className="fixed inset-0 pointer-events-none noise-bg z-50" />
@@ -98,15 +128,15 @@ export default function App() {
         
         {/* Header */}
         <header className="absolute top-0 w-full z-50 flex justify-between items-center px-8 md:px-16 py-8 mix-blend-difference pointer-events-none">
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 rounded-sm border border-stone-500 flex items-center justify-center font-serif italic text-sm">S</div>
-            <span className="font-mono text-xs tracking-widest uppercase text-stone-500 hidden md:block">Artisan Architecture</span>
+          <div className="flex items-center gap-4">
+            <img src="/logo_white.png" alt="Solnyter Logo" className="h-5 w-auto object-contain opacity-80" />
+            <span className="font-mono text-xs tracking-widest uppercase text-[#8a7b69] hidden md:block">Solnyter</span>
           </div>
-          <span className="text-[10px] font-mono tracking-widest uppercase text-stone-500">Est. 2026</span>
+          <span className="text-[10px] font-mono tracking-widest uppercase text-[#8a7b69]">Prajal Sonariya</span>
         </header>
 
         {/* Right Vertical Scrubber */}
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-5 mix-blend-difference">
+        <div className="fixed right-8 top-1/2 -translate-y-1/2 hidden md:flex flex-col items-center gap-4 z-50 mix-blend-difference pointer-events-auto">
           {mainStages.map((st, i) => {
             return (
               <div 
@@ -114,10 +144,10 @@ export default function App() {
                 className="flex flex-col items-center gap-3 group cursor-pointer" 
                 onClick={() => scrollToStage(i)}
               >
-                <span className={`text-[9px] font-mono transition-opacity duration-300 ${activeMainStage === i ? 'opacity-100 text-amber-500' : 'opacity-0 group-hover:opacity-50 text-stone-400'}`}>
+                <span className={`text-[9px] font-mono transition-opacity duration-300 ${activeMainStage === i ? 'opacity-100 text-[#c28e5c]' : 'opacity-0 group-hover:opacity-50 text-[#bbaea0]'}`}>
                   {st.title}
                 </span>
-                <div className={`w-[2px] transition-all duration-500 rounded-full ${activeMainStage === i ? 'h-10 bg-amber-500' : 'h-3 bg-stone-700 group-hover:bg-stone-500'}`} />
+                <div className={`w-[2px] transition-all duration-500 rounded-full ${activeMainStage === i ? 'h-10 bg-[#c28e5c]' : 'h-3 bg-[#4a3d30] group-hover:bg-neutral-500'}`} />
               </div>
             );
           })}
@@ -127,132 +157,146 @@ export default function App() {
         <div className="flex-1 relative w-full h-full flex items-center justify-center pt-24 pb-12 px-8 md:px-16 lg:px-24">
           <AnimatePresence mode="wait">
             
-            {/* UNIT 0: The Problem */}
+            {/* UNIT 0: The Introduction */}
             {activeMainStage === 0 && (
-              <motion.div key="stage0" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.6 }} className="w-full max-w-7xl flex flex-col xl:flex-row items-center gap-16 absolute inset-0 m-auto h-fit px-8 md:px-16 lg:px-24">
-                <div className="xl:w-1/2 space-y-8">
-                  <div className="font-mono text-stone-500 text-xs tracking-widest uppercase flex items-center gap-3">
-                    <Hammer size={14} className="text-amber-600" />
-                    The Swordmaker
-                  </div>
-                  <h2 className="text-5xl md:text-6xl font-serif text-stone-100 leading-tight">
-                    I don't paint the masterpiece. <br/><span className="text-stone-500 italic">I forge the tools.</span>
-                  </h2>
-                  <p className="text-stone-400 text-lg leading-relaxed max-w-lg font-light">
-                    I despise generalized software. It disrespects the outliers forced to use it. I am not a factory. I take one project at a time, completely immersing myself in your operations to forge a system that fits perfectly in your hand.
-                  </p>
+              <motion.div 
+                key="stage0" 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0, scale: 0.95 }} 
+                transition={{ duration: 0.8 }} 
+                className="w-full h-full flex flex-col relative px-8 pb-12 pt-[15vh]"
+              >
+                <div className="w-full max-w-5xl relative z-10 flex flex-col justify-center">
+                  <motion.div 
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 1 }}
+                  >
+                    <h1 className="text-[2.5rem] md:text-[5.5rem] leading-[1.05] tracking-tight font-serif text-stone-100 mb-8 relative">
+                      Stop Adapting Your Business<br />
+                      <span className="text-[#a68a61] italic">to Generic Software.</span>
+                    </h1>
+                    <p className="text-xl md:text-2xl text-[#c8c0b0] font-serif italic max-w-3xl leading-relaxed">
+                      I engineer custom operational software directly around your daily workflow.
+                    </p>
+                  </motion.div>
                 </div>
                 
-                <div className="xl:w-1/2 w-full flex flex-col gap-6">
-                  <div className="glass-panel rounded-lg p-8 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-[50px]" />
-                    <div className="flex items-center gap-4 mb-8 border-b border-stone-800 pb-4">
-                      <div className="w-2 h-2 rounded-full bg-stone-700" />
-                      <div className="w-2 h-2 rounded-full bg-stone-700" />
-                      <span className="text-[10px] font-mono text-stone-500 tracking-wider">GENERIC_SAAS_BLOAT</span>
-                    </div>
-                    <div className="space-y-4 opacity-30 grayscale transition-all duration-500 group-hover:opacity-20">
-                      <div className="h-3 w-3/4 bg-stone-800 rounded-sm" />
-                      <div className="h-3 w-1/2 bg-stone-800 rounded-sm" />
-                      <div className="h-3 w-full bg-stone-800 rounded-sm" />
-                    </div>
-                  </div>
-
-                  <div className="glass-panel rounded-lg p-8 glow border-amber-500/20 relative overflow-hidden">
-                    <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-amber-600/10 rounded-full blur-[60px]" />
-                    <div className="flex items-center gap-4 mb-8 border-b border-amber-900/30 pb-4">
-                      <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
-                      <span className="text-[10px] font-mono text-amber-200/70 tracking-wider">SOLNYTER_BESPOKE_ENGINE</span>
-                    </div>
-                    <div className="flex justify-between items-end">
-                      <div className="space-y-2">
-                        <div className="text-xs text-amber-500/70 uppercase tracking-widest font-mono">Artistic Flow</div>
-                        <div className="text-3xl font-serif text-stone-100">Uninterrupted.</div>
-                      </div>
-                      <Compass className="text-amber-500 opacity-50" size={32} />
-                    </div>
-                  </div>
-                </div>
+                {/* Scroll Indicator / Sub-Hero */}
+                <motion.div 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  transition={{ delay: 1, duration: 1 }}
+                  className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center w-full px-8"
+                >
+                  <span className="font-serif italic text-[#a68a61] text-xl text-center">
+                    "You Run the Business. I Build the Engine."
+                  </span>
+                  <span className="text-sm text-stone-500 mt-4 block not-italic font-sans text-center max-w-xl">
+                    I'll manage the entire digital infrastructure so you can focus strictly on commercial expansion.
+                  </span>
+                </motion.div>
               </motion.div>
             )}
 
             {/* UNITS 1 to 4: The Process */}
             {activeMainStage === 1 && (
-              <motion.div 
-                key="stage1" 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                exit={{ opacity: 0 }} 
-                transition={{ duration: 0.6 }} 
-                className="w-full h-full flex flex-col items-center relative absolute inset-0 pt-24 pb-12"
-              >
-                {/* Title Section */}
-                <div className="text-center w-full max-w-3xl shrink-0 z-10 mb-16">
-                  <div className="font-mono text-amber-600 text-xs tracking-widest uppercase flex items-center justify-center gap-3 mb-6">
-                    <Clock size={14} /> One Project At A Time
+              <motion.div key="stage1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="w-full h-full relative">
+                
+                {/* Header Section */}
+                <div className="absolute top-[15vh] w-full flex flex-col items-center text-center">
+                  <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase mb-4 flex items-center justify-center gap-2">
+                    <span className="text-[10px]">❖</span> THE METHOD
                   </div>
-                  <h2 className="text-5xl font-serif text-stone-100 mb-6">The Deep Immersion.</h2>
-                  <p className="text-stone-400 text-lg mx-auto font-light max-w-xl transition-opacity duration-700" style={{ opacity: isTimelineStage ? 0.2 : 1 }}>
-                    I don't fit in a box, and neither does your business. From the 5 AM start to the final deployment, the focus is absolute.
+                  <h2 className="text-5xl md:text-[3.5rem] font-serif tracking-tight text-stone-100 mb-4">Build From the Scratch.</h2>
+                  <p className="text-md text-[#c8c0b0] font-serif italic max-w-2xl mx-auto">
+                    One project at a time. Zero templates. Zero third-party subscriptions.
                   </p>
                 </div>
 
-                {/* Main Interactive Layout Area */}
-                <div className="w-full flex-1 flex flex-col items-center gap-12 relative z-20 max-w-7xl">
-                  
-                  {/* Timeline Track */}
-                  <div 
-                    className="w-full h-32 relative flex items-center justify-center overflow-visible shrink-0 pointer-events-none"
-                    style={{
-                      maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
-                      WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)'
-                    }}
-                  >
+                {/* Timeline Section */}
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 w-full h-64 overflow-hidden pointer-events-none"
+                  style={{
+                    maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+                    WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)'
+                  }}
+                >
+                  {/* Mobile-Only Centered Timeline */}
+                  <div className="md:hidden absolute top-[45%] w-full flex flex-col items-center justify-center text-center px-6 pointer-events-none">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activeIndex}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.4 }}
+                        className="flex flex-col items-center"
+                      >
+                        <span className="font-serif text-[0.9rem] tracking-widest text-[#a68a61] mb-3">{processSubStages[activeIndex].w}</span>
+                        <h4 className="font-serif italic text-[#e6decb] text-3xl leading-tight">{processSubStages[activeIndex].t}</h4>
+                      </motion.div>
+                    </AnimatePresence>
+                    {/* Progress Dots */}
+                    <div className="mt-10 flex gap-2">
+                      {processSubStages.map((_, i) => (
+                        <div key={i} className={`h-[2px] rounded-full transition-all duration-500 ${activeIndex === i ? 'w-8 bg-[#8a7251]' : 'w-2 bg-[#2a221a]'}`} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Desktop Horizontal Timeline */}
+                  <div className="hidden md:block w-full h-full relative">
                     <motion.div 
-                      className="absolute w-[150vw] max-w-[2000px] flex items-center"
+                      className="absolute w-[300vw] h-full flex items-center"
                       style={{ x: timelineX }} // Buttery smooth 1:1 hardware pan
                     >
-                      <div className="w-full relative px-8">
-                        {/* Background wire */}
-                        <div className="absolute top-1/2 -translate-y-1/2 left-8 right-8 h-px bg-stone-800" />
+                      <div className="w-full relative h-full">
+                        {/* Static Track Line (Bounded 85vw to 190vw) */}
+                        <div className="absolute top-1/2 -translate-y-1/2 left-[85vw] w-[105vw] h-[1px] bg-[#2a221a]">
+                          {/* Start Marker */}
+                          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rotate-45 border border-[#4a3d30] bg-[#0c0a09]" />
+                          
+                          {/* End Marker */}
+                          <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rotate-45 border border-[#4a3d30] bg-[#0c0a09]" />
+                        </div>
                         
-                        {/* Glowing Ember Line */}
+                        {/* Minimalist Active Line */}
                         <motion.div 
-                          className="absolute top-1/2 -translate-y-1/2 left-8 h-px bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,1)]"
-                          style={{ width: lineWidth }} // Buttery smooth continuous growth
+                          className="absolute top-1/2 -translate-y-1/2 left-[85vw] h-[1px] bg-[#8a7251]"
+                          style={{ width: activeLineWidth }} 
                         />
 
-                        {/* Nodes (Mechanical Keys) */}
-                        <div className="grid grid-cols-4 gap-4 relative z-10 w-full">
+                        {/* Nodes */}
+                        <div className="absolute top-0 bottom-0 left-0 right-0 pointer-events-none">
                           {processSubStages.map((step, i) => {
-                            const isActive = i <= activeIndex;
                             const isCurrentPhase = activeIndex === i;
+                            // Exact vw positions matching the timeline math: 100vw, 125vw, 150vw, 175vw
+                            const nodeLeft = 100 + (i * 25); 
                             
                             return (
                               <div 
                                 key={i} 
-                                className="flex flex-col items-center text-center relative transition-all duration-700 ease-out"
+                                className="absolute top-0 bottom-0 w-64 flex flex-col justify-center transition-all duration-700 ease-out -translate-x-1/2"
                                 style={{
-                                  opacity: isCurrentPhase ? 1 : 0.25,
-                                  transform: isCurrentPhase ? 'scale(1)' : 'scale(0.95)'
+                                  left: `${nodeLeft}vw`,
+                                  opacity: isCurrentPhase ? 1 : 0.15
                                 }}
                               >
-                                {/* Mechanical Keycap Visual */}
-                                <div className={`
-                                  w-14 h-14 rounded-lg flex items-center justify-center text-[10px] font-mono mb-6 transition-all duration-300 relative
-                                  ${isActive 
-                                    ? 'bg-gradient-to-b from-amber-950 to-stone-950 border border-amber-500/30 text-amber-200 translate-y-1' 
-                                    : 'bg-gradient-to-b from-stone-800 to-stone-900 border border-stone-700/50 text-stone-600 shadow-[0_4px_0_rgba(28,25,23,1)]'} 
-                                `}
-                                style={{
-                                  boxShadow: isActive ? '0 0 30px rgba(245,158,11,0.15), inset 0 1px 0 rgba(255,255,255,0.05)' : '',
-                                  textShadow: isActive ? '0 0 12px rgba(245,158,11,0.9), 0 0 24px rgba(245,158,11,0.4)' : 'none'
-                                }}
-                                >
-                                  {step.w}
+                                {/* Numeral - just above the line */}
+                                <div className="absolute bottom-[calc(50%+1.5rem)] w-full text-center">
+                                  <span className={`font-serif text-[0.9rem] tracking-widest transition-colors duration-500 ${isCurrentPhase ? 'text-stone-300' : 'text-stone-600'}`}>
+                                    {step.w}
+                                  </span>
                                 </div>
-                                <h4 className={`font-serif italic mb-2 transition-colors duration-300 ${isCurrentPhase ? 'text-stone-100 text-2xl' : isActive ? 'text-stone-300 text-xl' : 'text-stone-600 text-xl'}`}>{step.t}</h4>
-                                <p className={`text-xs font-mono tracking-widest uppercase transition-colors duration-300 ${isActive ? 'text-amber-600/80' : 'text-stone-700'}`}>{step.d}</p>
+
+                                {/* Title */}
+                                <div className="absolute top-[calc(50%+1.5rem)] w-full flex flex-col items-center text-center">
+                                  <h4 className={`font-serif italic mb-1 transition-colors duration-500 ${isCurrentPhase ? 'text-[#e6decb] text-2xl' : 'text-stone-500 text-xl'}`}>
+                                    {step.t}
+                                  </h4>
+                                </div>
                               </div>
                             );
                           })}
@@ -260,27 +304,26 @@ export default function App() {
                       </div>
                     </motion.div>
                   </div>
+                </div>
 
-                  {/* Popup Card */}
-                  <div className="w-full max-w-xl h-48 relative flex justify-center mt-8">
-                    <AnimatePresence mode="wait">
-                      {isTimelineStage && (
-                        <motion.div 
-                          key={activeIndex}
-                          initial={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
-                          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                          exit={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-                          transition={{ duration: 0.4 }}
-                          className="w-full relative pointer-events-auto text-center"
-                        >
-                          <p className="text-lg text-stone-300 leading-relaxed font-light px-8">
-                            {processSubStages[activeIndex].detail}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
+                {/* Popup Card / Quote Section */}
+                <div className="w-full max-w-2xl absolute bottom-[20vh] left-1/2 -translate-x-1/2 flex justify-center">
+                  <AnimatePresence>
+                    {isTimelineStage && (
+                      <motion.div 
+                        key={activeIndex}
+                        initial={{ opacity: 0, filter: 'blur(4px)' }}
+                        animate={{ opacity: 1, filter: 'blur(0px)' }}
+                        exit={{ opacity: 0, filter: 'blur(4px)' }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full absolute inset-0 flex items-center justify-center pointer-events-auto text-center"
+                      >
+                        <p className="text-[1.1rem] text-[#c8c0b0] leading-[1.8] font-serif italic px-8">
+                          "{processSubStages[activeIndex].detail}"
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             )}
@@ -289,131 +332,161 @@ export default function App() {
             {activeMainStage === 2 && (
               <motion.div key="stage2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.6 }} className="w-full max-w-7xl flex flex-col justify-center items-center absolute inset-0 m-auto h-fit px-8 md:px-16 lg:px-24">
                 <div className="text-center mb-16 space-y-4">
-                  <div className="font-mono text-stone-500 text-xs tracking-widest uppercase flex items-center justify-center gap-3">Polymath Arsenal</div>
-                  <h2 className="text-5xl md:text-6xl font-serif text-stone-100">Weapons Forged.</h2>
+                  <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase flex items-center justify-center gap-2">
+                    <span className="text-[10px]">❖</span> PROVEN PRODUCTION ENGINES
+                  </div>
+                  <h2 className="text-3xl md:text-[2.5rem] font-serif tracking-tight text-stone-100 max-w-3xl mx-auto leading-tight">
+                    Engineered for commercial use.
+                  </h2>
                 </div>
 
-                <div className="w-full max-w-4xl glass-panel rounded-xl overflow-hidden border-stone-800 flex flex-col h-[50vh]">
-                  <div className="bg-stone-900/50 border-b border-stone-800 px-6 py-4 flex items-center gap-4">
-                    <div className="flex-1 flex gap-4">
-                      <div className="px-4 py-1.5 rounded-sm bg-stone-800 text-[10px] font-mono text-stone-200 flex items-center gap-2"><LayoutGrid size={12}/> Rupali Flow</div>
-                      <div className="px-4 py-1.5 rounded-sm text-[10px] font-mono text-stone-500 hover:bg-stone-800/50 transition-colors cursor-pointer flex items-center gap-2"><Zap size={12}/> LinkNyter</div>
-                      <div className="px-4 py-1.5 rounded-sm text-[10px] font-mono text-stone-500 hover:bg-stone-800/50 transition-colors cursor-pointer flex items-center gap-2"><Maximize size={12}/> Grain Photo</div>
+                <div className="w-full max-w-4xl glass-panel rounded-xl overflow-hidden border-[#3a2f24] flex flex-col md:h-[65vh]">
+                  {/* Tabs */}
+                  <div className="bg-[#1f1a16]/50 border-b border-[#3a2f24] px-6 py-4 flex items-center gap-4 shrink-0 overflow-x-auto hide-scrollbar">
+                    <div className="flex-1 flex gap-4 min-w-max">
+                      {engines.map((engine, idx) => (
+                        <div 
+                          key={engine.id}
+                          onClick={() => setActiveEngineTab(idx)}
+                          className={`px-4 py-1.5 rounded-sm text-[10px] font-mono flex items-center gap-2 cursor-pointer transition-colors whitespace-nowrap ${activeEngineTab === idx ? 'bg-[#2a221a] text-[#e3dbc8]' : 'text-[#8a7b69] hover:bg-[#2a221a]/50'}`}
+                        >
+                          {engine.name}
+                        </div>
+                      ))}
                     </div>
                   </div>
                   
-                  <div className="flex-1 p-10 flex flex-col relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none" />
-                    <div className="flex justify-between items-start mb-10 relative z-10">
-                      <div>
-                        <h3 className="text-3xl font-serif text-stone-100 mb-2">Rupali Flow Engine</h3>
-                        <p className="text-xs text-stone-500 font-mono tracking-widest uppercase">High-Volume Service</p>
-                      </div>
-                      <div className="px-3 py-1.5 rounded bg-amber-950/30 text-amber-500 text-[10px] font-mono flex items-center gap-2 border border-amber-900/50">
-                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/> LIVE SYSTEM
-                      </div>
+                  {/* Info Bar */}
+                  <div className="bg-[#120f0c] border-b border-[#3a2f24] px-6 md:px-8 py-5 flex flex-col md:flex-row justify-between md:items-center gap-4 shrink-0 z-20">
+                    <div>
+                      <h3 className="text-2xl font-serif text-[#f4ebd8]">{engines[activeEngineTab].title}</h3>
                     </div>
+                    <div className="flex flex-col items-end pointer-events-auto">
+                      {engines[activeEngineTab].link && (
+                        <a 
+                          href={engines[activeEngineTab].link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-[#c28e5c]/90 text-[#15120f] text-[10px] font-mono uppercase tracking-widest hover:bg-[#d3c9b5] transition-colors rounded-sm shadow-lg flex items-center gap-2"
+                        >
+                          Test Live Platform <span className="text-[8px]">↗</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
 
-                    <div className="grid grid-cols-3 gap-8 flex-1 relative z-10">
-                      <div className="col-span-2 glass-panel rounded-lg border-stone-800/50 p-6 flex flex-col">
-                        <div className="text-[10px] font-mono text-stone-500 mb-6 uppercase tracking-widest">Real-Time Conflict Calendar</div>
-                        <div className="flex-1 space-y-4">
-                           {[...Array(3)].map((_, i) => (
-                             <div key={i} className="w-full h-10 flex items-center gap-4">
-                               <div className="text-[10px] font-mono text-stone-600 w-16">{9 + i}:00 AM</div>
-                               <div className={`flex-1 h-full rounded-sm ${i % 2 === 0 ? 'bg-amber-900/20 border border-amber-700/30' : 'border border-stone-800 border-dashed'}`} />
-                             </div>
-                           ))}
-                        </div>
-                      </div>
-                      <div className="col-span-1 flex flex-col gap-8">
-                        <div className="flex-1 glass-panel rounded-lg border-stone-800/50 p-6 flex flex-col justify-center">
-                           <div className="text-[10px] font-mono text-stone-500 mb-3 tracking-widest uppercase">Automated API</div>
-                           <div className="text-4xl font-serif text-stone-100 mb-1">142</div>
-                           <div className="text-xs text-stone-600 font-light">Confirmations Sent</div>
-                        </div>
-                      </div>
-                    </div>
+                  {/* Video Player */}
+                  <div className="relative overflow-hidden bg-[#0c0a09] flex flex-col group aspect-video md:aspect-auto md:flex-1">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#c28e5c]/10 blur-[100px] rounded-full pointer-events-none z-10" />
+                    <video 
+                      key={engines[activeEngineTab].id}
+                      src={engines[activeEngineTab].videoSrc}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="w-full h-full object-contain md:object-cover opacity-70 transition-opacity duration-1000 group-hover:opacity-100"
+                    />
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* UNIT 6: The Meaning */}
+            {/* UNIT 3: Pricing */}
             {activeMainStage === 3 && (
-              <motion.div key="stage3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.6 }} className="w-full max-w-7xl flex flex-col items-center absolute inset-0 m-auto h-fit px-8 md:px-16 lg:px-24">
-                <div className="text-center mb-24 space-y-6">
-                  <div className="font-mono text-amber-600 text-xs tracking-widest uppercase flex items-center justify-center gap-3"><Moon size={14} /> Solnyter</div>
-                  <h2 className="text-5xl md:text-6xl font-serif text-stone-100 leading-tight">Solo struggle to<br/><i className="text-stone-400">true brilliance.</i></h2>
-                  <p className="text-stone-400 text-lg max-w-xl mx-auto font-light leading-relaxed">
-                    'Sol' for Solo. 'Niter' for Struggle. There are no shortcuts. I handle the entire digital facility from the shadows so you can focus strictly on enjoying your life and your art.
-                  </p>
-                </div>
-
-                <div className="relative w-full max-w-3xl flex justify-between items-center py-12">
-                  <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-stone-800 to-transparent -translate-y-1/2" />
-                  
-                  {[
-                    { icon: <Terminal size={24} />, label: "Raw Code", sub: "No templates" },
-                    { icon: <CheckCircle2 size={24} />, label: "Precision", sub: "Absolute focus" },
-                    { icon: <Bird size={24} />, label: "Autonomy", sub: "Built to fly" }
-                  ].map((node, i) => (
-                    <div key={i} className="relative z-10 flex flex-col items-center group">
-                      <div className="w-20 h-20 rounded-xl glass-panel border-stone-800 flex items-center justify-center mb-6 relative hover:-translate-y-2 transition-transform duration-300 bg-stone-900">
-                        <div className="text-stone-300 relative z-10 group-hover:text-amber-500 transition-colors">{node.icon}</div>
-                      </div>
-                      <div className="text-sm font-serif text-stone-200 mb-1 italic">{node.label}</div>
-                      <div className="text-[9px] font-mono text-stone-500 uppercase tracking-widest">{node.sub}</div>
+              <motion.div key="stage3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.8 }} className="w-full h-full flex flex-col items-center justify-center relative px-8">
+                <div className="w-full max-w-5xl flex flex-col items-center">
+                  <div className="text-center mb-12">
+                    <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase mb-4 flex items-center justify-center gap-2">
+                      <span className="text-[10px]">❖</span> INVESTMENT
                     </div>
-                  ))}
+                    <h2 className="text-4xl md:text-5xl font-serif tracking-tight text-stone-100">
+                      Clear Terms.
+                    </h2>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8 w-full">
+                    {/* Build Card */}
+                    <div className="flex flex-col text-left p-8 border border-[#2a221a] bg-[#120f0c] rounded-md">
+                      <div className="border-b border-[#2a221a] pb-6 mb-6">
+                        <h3 className="text-xs font-mono text-[#a68a61] mb-2 uppercase tracking-widest">Custom Architecture & Build</h3>
+                        <div className="text-4xl font-serif text-[#f4ebd8] mb-2">₹4,00,000</div>
+                        <p className="text-xs text-[#8a7b69] font-sans italic">
+                          One-time upfront investment.
+                        </p>
+                      </div>
+                      
+                      <ul className="space-y-4">
+                        <li className="flex items-start gap-3 text-[13px] text-[#c8c0b0] font-light">
+                          <div className="text-[#8a7251] leading-none mt-1">❖</div>
+                          <div><strong className="text-[#e6decb] font-serif font-normal">Floor Audit:</strong> Physical workflow mapping.</div>
+                        </li>
+                        <li className="flex items-start gap-3 text-[13px] text-[#c8c0b0] font-light">
+                          <div className="text-[#8a7251] leading-none mt-1">❖</div>
+                          <div><strong className="text-[#e6decb] font-serif font-normal">Engineering:</strong> Custom database, APIs, and UI.</div>
+                        </li>
+                        <li className="flex items-start gap-3 text-[13px] text-[#c8c0b0] font-light">
+                          <div className="text-[#8a7251] leading-none mt-1">❖</div>
+                          <div><strong className="text-[#e6decb] font-serif font-normal">Deployment:</strong> Desktop and mobile web apps.</div>
+                        </li>
+                        <li className="flex items-start gap-3 text-[13px] text-[#c8c0b0] font-light">
+                          <div className="text-[#8a7251] leading-none mt-1">❖</div>
+                          <div><strong className="text-[#e6decb] font-serif font-normal">60-Day Buffer:</strong> Friction testing and tweaks.</div>
+                        </li>
+                        <li className="flex items-start gap-3 text-[13px] text-[#c8c0b0] font-light">
+                          <div className="text-[#8a7251] leading-none mt-1">❖</div>
+                          <div><strong className="text-[#e6decb] font-serif font-normal">Included Upkeep:</strong> First 2 months of server & DB costs covered.</div>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Infrastructure Card */}
+                    <div className="flex flex-col text-left p-8 border border-[#2a221a] bg-[#120f0c] rounded-md">
+                      <div className="border-b border-[#2a221a] pb-6 mb-6">
+                        <h3 className="text-xs font-mono text-[#a68a61] mb-2 uppercase tracking-widest">Managed Infrastructure</h3>
+                        <div className="text-4xl font-serif text-[#f4ebd8] mb-2 flex items-end gap-2">
+                          ₹20,000 <span className="text-lg text-[#6b5d4f] italic font-serif pb-1">/ mo</span>
+                        </div>
+                        <p className="text-xs text-[#8a7b69] font-sans italic">
+                          Activates on month three.
+                        </p>
+                      </div>
+                      
+                      <ul className="space-y-4">
+                        <li className="flex items-start gap-3 text-[13px] text-[#c8c0b0] font-light">
+                          <div className="text-[#8a7251] leading-none mt-1">❖</div>
+                          <div><strong className="text-[#e6decb] font-serif font-normal">Zero Cloud Cost:</strong> I cover all server & DB fees.</div>
+                        </li>
+                        <li className="flex items-start gap-3 text-[13px] text-[#c8c0b0] font-light">
+                          <div className="text-[#8a7251] leading-none mt-1">❖</div>
+                          <div><strong className="text-[#e6decb] font-serif font-normal">Proactive Upkeep:</strong> Security patches & backups.</div>
+                        </li>
+                        <li className="flex items-start gap-3 text-[13px] text-[#c8c0b0] font-light">
+                          <div className="text-[#8a7251] leading-none mt-1">❖</div>
+                          <div><strong className="text-[#e6decb] font-serif font-normal">Bug Resolution:</strong> Rapid patching of anomalies.</div>
+                        </li>
+                        <li className="flex items-start gap-3 text-[13px] text-stone-500 font-light italic">
+                          <div className="text-stone-600 leading-none mt-1">❖</div>
+                          <div><strong className="text-stone-400 font-serif font-normal not-italic">Note:</strong> New features billed separately.</div>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}
 
-            {/* UNIT 7: Commercials */}
+            {/* UNIT 4: Action */}
             {activeMainStage === 4 && (
-              <motion.div key="stage4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.6 }} className="w-full max-w-7xl flex flex-col items-center absolute inset-0 m-auto h-fit px-8 md:px-16 lg:px-24">
-                <div className="text-center mb-16 space-y-4">
-                  <div className="font-mono text-stone-500 text-xs tracking-widest uppercase flex items-center justify-center gap-2">Investment</div>
-                  <h2 className="text-5xl font-serif text-stone-100">Transparent Terms.</h2>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
-                  <div className="glass-panel p-12 rounded-xl border-stone-800 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-5"><Layers size={80} /></div>
-                    <div className="text-[10px] font-mono text-stone-500 uppercase tracking-widest mb-6">Upfront Build Fee</div>
-                    <div className="text-5xl font-serif text-stone-100 mb-10 tracking-tight">₹4,00,000</div>
-                    <ul className="space-y-4 text-sm text-stone-400 font-light">
-                      <li className="flex items-center gap-4"><span className="text-amber-600 font-mono">+</span> Deep-dive custom build</li>
-                      <li className="flex items-center gap-4"><span className="text-amber-600 font-mono">+</span> Full on-site floor audit</li>
-                      <li className="flex items-center gap-4"><span className="text-amber-600 font-mono">+</span> Custom desktop & mobile engine</li>
-                      <li className="flex items-center gap-4"><span className="text-amber-600 font-mono">+</span> 60-day real-world buffer included</li>
-                    </ul>
-                  </div>
-
-                  <div className="glass-panel p-12 rounded-xl border-stone-800 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-5"><Activity size={80} /></div>
-                    <div className="text-[10px] font-mono text-stone-500 uppercase tracking-widest mb-6">Operational Retainer</div>
-                    <div className="text-5xl font-serif text-stone-100 mb-3 tracking-tight">₹20,000</div>
-                    <div className="text-xs text-stone-600 font-mono mb-8 tracking-widest uppercase">/ month (Begins Month 3)</div>
-                    <ul className="space-y-4 text-sm text-stone-400 font-light">
-                      <li className="flex items-center gap-4"><span className="text-amber-600 font-mono">+</span> 24/7 server infrastructure</li>
-                      <li className="flex items-center gap-4"><span className="text-amber-600 font-mono">+</span> DB sync & API token health</li>
-                      <li className="flex items-center gap-4"><span className="text-amber-600 font-mono">+</span> Security & continuous backups</li>
-                      <li className="flex items-center gap-4"><span className="text-amber-600 font-mono">+</span> Routine operational tweaks</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <motion.a 
-                  href="mailto:contact@prajalsonariya.com"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="mt-16 inline-flex items-center gap-4 px-10 py-5 bg-stone-100 text-stone-950 text-xs font-mono uppercase tracking-widest hover:bg-amber-500 transition-colors pointer-events-auto rounded-sm"
+              <motion.div key="stage4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="w-full h-full flex flex-col items-center justify-center">
+                <a 
+                  href="https://wa.me/919773476854?text=Hey%20Prajal!%20I%20would%20love%20to%20know%20more%20about%20the%20Custom%20Operational%20Tool" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-3xl md:text-5xl font-serif text-[#e6decb] hover:text-stone-100 transition-colors border-b border-[#a68a61] pb-4 pointer-events-auto"
                 >
-                  Commission A Build
-                </motion.a>
+                  Connect with Prajal.
+                </a>
               </motion.div>
             )}
 

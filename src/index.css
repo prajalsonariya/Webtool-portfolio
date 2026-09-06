@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0c0a09;
-  --color-foreground: #e7e5e4;
-  --color-accent: #f59e0b;
-  --color-muted: #78716c;
-  --color-card: #1c1917;
+  --color-background: #1a1612;
+  --color-foreground: #e3dbc8;
+  --color-accent: #c28e5c;
+  --color-muted: #8a7b69;
+  --color-card: #2a221a;
   --font-sans: "Inter", system-ui, sans-serif;
   --font-serif: "Playfair Display", Georgia, serif;
   --font-mono: "JetBrains Mono", monospace;
@@ -28,24 +28,24 @@
   }
   
   ::selection {
-    background-color: rgba(245, 158, 11, 0.3);
-    color: #fef3c7;
+    background-color: rgba(194, 142, 92, 0.3);
+    color: #f4ebd8;
   }
 }
 
 .noise-bg {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.05;
+  opacity: 0.15;
   mix-blend-mode: overlay;
 }
 
 .glass-panel {
-  background: rgba(28, 25, 23, 0.4);
+  background: rgba(42, 34, 26, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(194, 142, 92, 0.15);
 }
 
 .glow {
-  box-shadow: 0 0 80px -20px rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 80px -20px rgba(194, 142, 92, 0.15);
 }
