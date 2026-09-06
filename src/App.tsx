@@ -118,7 +118,10 @@ export default function App() {
   ];
 
   return (
-    <div ref={containerRef} className="h-[800vh] bg-[#15120f] text-[#e3dbc8] selection:bg-[#c28e5c]/30 selection:text-[#f4ebd8] font-sans relative">
+    <>
+    {/* --- DESKTOP LAYOUT --- */}
+    <div className="hidden md:block">
+      <div ref={containerRef} className="h-[800vh] bg-[#15120f] text-[#e3dbc8] selection:bg-[#c28e5c]/30 selection:text-[#f4ebd8] font-sans relative">
       
       {/* Cinematic Film Grain Overlay */}
       <div className="fixed inset-0 pointer-events-none noise-bg z-50" />
@@ -494,5 +497,173 @@ export default function App() {
         </div>
       </div>
     </div>
+    </div>
+
+      {/* -------------------------------------------------------------------------------- */}
+      {/* MOBILE SNAP LAYOUT (Completely independent of framer-motion scroll physics) */}
+      {/* -------------------------------------------------------------------------------- */}
+      <div className="md:hidden h-screen w-full overflow-y-auto snap-y snap-mandatory overflow-x-hidden relative hide-scrollbar bg-[#15120f] text-[#e3dbc8] font-sans">
+        
+        {/* Cinematic Film Grain Overlay */}
+        <div className="fixed inset-0 pointer-events-none noise-bg z-40" />
+
+        {/* Header */}
+        <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-6 mix-blend-difference pointer-events-none">
+          <img src="/logo_white.png" alt="Solnyter Logo" className="h-5 w-auto object-contain opacity-80" />
+          <span className="text-[10px] font-mono tracking-widest uppercase text-[#8a7b69]">Prajal Sonariya</span>
+        </header>
+
+        {/* Stage 0 */}
+        <section className="h-screen w-full snap-start shrink-0 flex flex-col justify-center px-8 relative z-10 pt-16">
+          <h1 className="text-[2.5rem] leading-[1.05] tracking-tight font-serif text-stone-100 mb-6">
+            Stop Adapting<br />Your Business<br />
+            <span className="text-[#a68a61] italic">to Generic Software.</span>
+          </h1>
+          <p className="text-lg text-[#c8c0b0] font-serif italic leading-relaxed mb-12">
+            I engineer custom operational software directly around your daily workflow.
+          </p>
+          <div className="flex flex-col items-start border-l border-[#3a2f24] pl-4">
+             <span className="font-serif italic text-[#a68a61] text-lg">"You Run the Business. I Build the Engine."</span>
+             <span className="text-xs text-stone-500 mt-2">I'll manage the entire digital infrastructure so you can focus strictly on commercial expansion.</span>
+          </div>
+        </section>
+
+        {/* Stage 1: The Method */}
+        <section className="h-screen w-full snap-start shrink-0 flex flex-col justify-center relative z-10">
+          <div className="text-center px-8 mb-8">
+            <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase mb-3 flex items-center justify-center gap-2">
+              <span className="text-[10px]">❖</span> THE METHOD
+            </div>
+            <h2 className="text-4xl font-serif tracking-tight text-stone-100 mb-3">Build From the Scratch.</h2>
+            <p className="text-sm text-[#c8c0b0] font-serif italic">
+              One project at a time. Zero templates. Zero third-party subscriptions.
+            </p>
+          </div>
+          
+          <div className="w-full flex overflow-x-auto snap-x snap-mandatory hide-scrollbar">
+            {processSubStages.map((step, i) => (
+              <div key={i} className="w-full shrink-0 snap-center flex flex-col items-center justify-center px-12 text-center h-[35vh]">
+                <span className="font-serif text-[0.9rem] tracking-widest text-[#a68a61] mb-2">{step.w}</span>
+                <h4 className="font-serif italic text-[#e6decb] text-3xl mb-3 leading-tight">{step.t}</h4>
+                <p className="text-[#8a7b69] text-xs leading-relaxed max-w-[250px] mx-auto">{step.detail}</p>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center gap-2 mt-4 opacity-50">
+             <span className="text-[8px] text-[#8a7b69] font-mono tracking-widest uppercase animate-pulse">&larr; Swipe Phases &rarr;</span>
+          </div>
+        </section>
+
+        {/* Stage 2: Engines */}
+        <section className="min-h-screen h-auto w-full snap-start shrink-0 flex flex-col justify-center px-4 py-24 relative z-10">
+          <div className="text-center mb-8 px-4">
+            <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase flex items-center justify-center gap-2 mb-3">
+              <span className="text-[10px]">❖</span> PROVEN PRODUCTION ENGINES
+            </div>
+            <h2 className="text-3xl font-serif tracking-tight text-stone-100 leading-tight">
+              Engineered for commercial use.
+            </h2>
+          </div>
+
+          <div className="w-full glass-panel rounded-xl overflow-hidden border-[#3a2f24] flex flex-col">
+            <div className="bg-[#1f1a16]/50 border-b border-[#3a2f24] px-4 py-3 flex items-center gap-3 overflow-x-auto hide-scrollbar">
+              <div className="flex-1 flex gap-3 min-w-max">
+                {engines.map((engine, idx) => (
+                  <div 
+                    key={engine.id}
+                    onClick={() => setActiveEngineTab(idx)}
+                    className={`px-3 py-1.5 rounded-sm text-[10px] font-mono flex items-center gap-2 cursor-pointer transition-colors whitespace-nowrap ${activeEngineTab === idx ? 'bg-[#2a221a] text-[#e3dbc8]' : 'text-[#8a7b69]'}`}
+                  >
+                    {engine.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="bg-[#120f0c] border-b border-[#3a2f24] px-5 py-4 flex flex-col gap-3 shrink-0 z-20">
+              <h3 className="text-xl font-serif text-[#f4ebd8]">{engines[activeEngineTab].title}</h3>
+              {engines[activeEngineTab].link && (
+                <a 
+                  href={engines[activeEngineTab].link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-4 py-2.5 bg-[#c28e5c]/90 text-[#15120f] text-[10px] font-mono uppercase tracking-widest rounded-sm self-start"
+                >
+                  Test Live Platform ↗
+                </a>
+              )}
+            </div>
+
+            <div className="relative overflow-hidden bg-[#0c0a09] flex flex-col aspect-video">
+              <video 
+                key={engines[activeEngineTab].id}
+                src={engines[activeEngineTab].videoSrc}
+                autoPlay muted loop playsInline
+                className="w-full h-full object-contain opacity-80"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Stage 3: Pricing */}
+        <section className="min-h-screen h-auto w-full snap-start shrink-0 flex flex-col justify-center px-6 py-24 relative z-10">
+          <div className="mb-10 text-center">
+             <div className="font-serif text-[#a68a61] text-[10px] tracking-[0.2em] uppercase mb-4 flex items-center justify-center gap-2">
+               <span className="text-[10px]">❖</span> INVESTMENT
+             </div>
+             <h2 className="text-4xl font-serif tracking-tight text-stone-100">Clear Terms.</h2>
+          </div>
+          
+          <div className="flex flex-col gap-6 w-full">
+            {/* Card 1 */}
+            <div className="flex flex-col bg-[#15120f] border border-[#3a2f24] rounded-xl overflow-hidden group">
+              <div className="p-6 border-b border-[#3a2f24] bg-gradient-to-br from-[#1c1712] to-transparent">
+                <h3 className="text-[#a68a61] font-mono text-xs tracking-widest uppercase mb-2">Build</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-serif text-[#f4ebd8]">₹4,00,000</span>
+                </div>
+              </div>
+              <div className="p-6 flex-1 flex flex-col">
+                <ul className="space-y-4 text-xs font-sans text-[#c8c0b0] mb-8 flex-1">
+                  <li className="flex items-start gap-3"><span className="text-[#a68a61] mt-0.5">●</span>Full operational ecosystem mapped and engineered from scratch.</li>
+                  <li className="flex items-start gap-3"><span className="text-[#a68a61] mt-0.5">●</span>On-site implementation and team training.</li>
+                  <li className="flex items-start gap-3"><span className="text-[#a68a61] mt-0.5">●</span>First 2 months of server & DB costs included.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="flex flex-col bg-[#15120f] border border-[#3a2f24] rounded-xl overflow-hidden group">
+              <div className="p-6 border-b border-[#3a2f24] bg-gradient-to-br from-[#1c1712] to-transparent">
+                <h3 className="text-[#a68a61] font-mono text-xs tracking-widest uppercase mb-2">Infrastructure</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-serif text-[#f4ebd8]">₹20,000</span>
+                  <span className="text-xs text-[#8a7b69] font-mono">/mo</span>
+                </div>
+              </div>
+              <div className="p-6 flex-1 flex flex-col">
+                <ul className="space-y-4 text-xs font-sans text-[#c8c0b0] mb-8 flex-1">
+                  <li className="flex items-start gap-3"><span className="text-[#a68a61] mt-0.5">●</span>All AWS/Cloud server and database scaling costs handled by me.</li>
+                  <li className="flex items-start gap-3"><span className="text-[#a68a61] mt-0.5">●</span>Routine bug fixes, security patches, and latency optimization.</li>
+                  <li className="flex items-start gap-3 opacity-60"><span className="text-[#4a3d30] mt-0.5">●</span>Note: Entirely new features post-production are billed separately.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stage 4: Contact */}
+        <section className="h-screen w-full snap-start shrink-0 flex items-center justify-center relative z-10">
+          <a 
+            href="https://wa.me/919773476854?text=Hey%20Prajal!%20I%20would%20love%20to%20know%20more%20about%20the%20Custom%20Operational%20Tool" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-3xl font-serif text-[#e6decb] border-b border-[#a68a61] pb-3 hover:text-white transition-colors"
+          >
+            Connect with Prajal.
+          </a>
+        </section>
+      </div>
+    </>
   );
 }
