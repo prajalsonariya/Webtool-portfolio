@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeEngineTab, setActiveEngineTab] = useState(0);
+  const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
 
   const engines = [
     {
@@ -46,15 +47,18 @@ export default function App() {
   // --------------------------------------------------------------------------------
   // TIMELINE PHYSICS (PURE VW MATH)
   // --------------------------------------------------------------------------------
-  // Track starts at 80vw and ends at 240vw (160vw total length).
-  // Nodes are spaced out heavily to prevent overlap: 100vw, 140vw, 180vw, 220vw.
+  // The container is 300vw wide. 
+  // Track starts at 85vw and ends at 190vw (105vw total length).
+  // Node 1 is at 100vw. Node 2 at 125vw. Node 3 at 150vw. Node 4 at 175vw.
   
-  // Start pan: -20vw (brings Node 1 into view).
-  // End pan: -170vw (perfectly centers Node 4 at 50vw).
-  const timelineX = useTransform(smoothProgress, [0.05, 0.55], ["-20vw", "-170vw"]);
+  // To keep the glowing line tip perfectly locked to the center of the screen (50vw), 
+  // the camera pan delta MUST exactly match the line growth delta (105vw).
+  // Start pan: -35vw (centers the 85vw Start point). 
+  // End pan: -140vw (centers the 190vw End point).
+  const timelineX = useTransform(smoothProgress, [0.10, 0.55], ["-35vw", "-140vw"]);
   
-  // The line grows exactly 160vw.
-  const activeLineWidth = useTransform(smoothProgress, [0.05, 0.55], ["0vw", "160vw"]);
+  // The line grows exactly 105vw, perfectly matching the camera pan speed.
+  const activeLineWidth = useTransform(smoothProgress, [0.10, 0.55], ["0vw", "105vw"]);
 
   // State only for active indexing (triggers max 5 times during the whole scroll)
   const [activeMainStage, setActiveMainStage] = useState(0);
@@ -73,9 +77,10 @@ export default function App() {
     if (stage !== activeMainStage) setActiveMainStage(stage);
 
     let idx = 0;
-    if (latest < 0.216) idx = 0;
-    else if (latest < 0.350) idx = 1;
-    else if (latest < 0.483) idx = 2;
+    // Nodes perfectly center at 0.271 (Node 2), 0.378 (Node 3), 0.485 (Node 4)
+    if (latest < 0.271) idx = 0;
+    else if (latest < 0.378) idx = 1;
+    else if (latest < 0.485) idx = 2;
     else idx = 3;
     
     if (idx !== activeIndex) setActiveIndex(idx);
@@ -135,7 +140,14 @@ export default function App() {
             <img src="/logo_white.png" alt="Solnyter Logo" className="h-5 w-auto object-contain opacity-80" />
             <span className="font-mono text-xs tracking-widest uppercase text-[#8a7b69] hidden md:block">Solnyter</span>
           </div>
-          <span className="text-[10px] font-mono tracking-widest uppercase text-[#8a7b69]">Prajal Sonariya</span>
+          <a 
+            href="https://www.instagram.com/prajal_sonariya/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-[10px] font-mono tracking-widest uppercase text-[#8a7b69] pointer-events-auto hover:text-white transition-colors cursor-pointer"
+          >
+            Prajal Sonariya
+          </a>
         </header>
 
         {/* Right Vertical Scrubber */}
@@ -510,19 +522,28 @@ export default function App() {
         {/* Header */}
         <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-6 mix-blend-difference pointer-events-none">
           <img src="/logo_white.png" alt="Solnyter Logo" className="h-5 w-auto object-contain opacity-80" />
-          <span className="text-[10px] font-mono tracking-widest uppercase text-[#8a7b69]">Prajal Sonariya</span>
+          <a 
+            href="https://www.instagram.com/prajal_sonariya/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-[10px] font-mono tracking-widest uppercase text-[#8a7b69] pointer-events-auto hover:text-white transition-colors cursor-pointer"
+          >
+            Prajal Sonariya
+          </a>
         </header>
 
         {/* Stage 0 */}
         <section className="h-screen w-full snap-start shrink-0 flex flex-col justify-center px-8 relative z-10 pt-16">
-          <h1 className="text-[2.5rem] leading-[1.05] tracking-tight font-serif text-stone-100 mb-6">
-            Stop Adapting<br />Your Business<br />
-            <span className="text-[#a68a61] italic">to Generic Software.</span>
-          </h1>
-          <p className="text-lg text-[#c8c0b0] font-serif italic leading-relaxed mb-12">
-            I engineer custom operational software directly around your daily workflow.
-          </p>
-          <div className="flex flex-col items-start border-l border-[#3a2f24] pl-4">
+          <div className="-mt-16">
+            <h1 className="text-[2.5rem] leading-[1.05] tracking-tight font-serif text-stone-100 mb-6">
+              Stop Adapting<br />Your Business<br />
+              <span className="text-[#a68a61] italic">to Generic Software.</span>
+            </h1>
+            <p className="text-lg text-[#c8c0b0] font-serif italic leading-relaxed">
+              I engineer custom operational software directly around your daily workflow.
+            </p>
+          </div>
+          <div className="absolute bottom-16 left-8 right-8 flex flex-col items-start border-l border-[#3a2f24] pl-4">
              <span className="font-serif italic text-[#a68a61] text-lg">"You Run the Business. I Build the Engine."</span>
              <span className="text-xs text-stone-500 mt-2">I'll manage the entire digital infrastructure so you can focus strictly on commercial expansion.</span>
           </div>
@@ -540,7 +561,14 @@ export default function App() {
             </p>
           </div>
           
-          <div className="w-full flex overflow-x-auto snap-x snap-mandatory hide-scrollbar">
+          <div 
+            className="w-full flex overflow-x-auto snap-x snap-mandatory hide-scrollbar"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const idx = Math.round(el.scrollLeft / el.clientWidth);
+              if (idx !== mobileActiveIndex) setMobileActiveIndex(idx);
+            }}
+          >
             {processSubStages.map((step, i) => (
               <div key={i} className="w-full shrink-0 snap-center flex flex-col items-center justify-center px-12 text-center h-[35vh]">
                 <span className="font-serif text-[0.9rem] tracking-widest text-[#a68a61] mb-2">{step.w}</span>
@@ -549,7 +577,14 @@ export default function App() {
               </div>
             ))}
           </div>
-          <div className="flex justify-center gap-2 mt-4 opacity-50">
+          
+          <div className="flex flex-col items-center gap-4 mt-4 opacity-70">
+             {/* Progress Dots */}
+             <div className="flex gap-2">
+               {processSubStages.map((_, i) => (
+                 <div key={i} className={`h-[2px] rounded-full transition-all duration-500 ${mobileActiveIndex === i ? 'w-8 bg-[#8a7251]' : 'w-2 bg-[#2a221a]'}`} />
+               ))}
+             </div>
              <span className="text-[8px] text-[#8a7b69] font-mono tracking-widest uppercase animate-pulse">&larr; Swipe Phases &rarr;</span>
           </div>
         </section>
